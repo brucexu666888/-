@@ -142,6 +142,7 @@ function renderLogin() {
         <label class="field"><span>密码</span><input type="password" name="password" autocomplete="current-password" required></label>
         <div class="error" id="login-error"></div>
         <button class="btn primary block" type="submit">登 录</button>
+        <div id="install-slot" style="margin-top:16px"></div>
       </form>
     </div>`;
   $('#login-form').addEventListener('submit', async (e) => {
@@ -158,7 +159,8 @@ function renderLogin() {
       $('#login-error').textContent = ex.message;
     }
   });
-  $('input[name=username]').focus();
+  fillInstallSlot();
+  if (!isMobile) $('input[name=username]').focus();
 }
 
 function logoutLocal() {
@@ -371,6 +373,7 @@ function renderSales() {
   const unread = state.stats?.unread || 0;
 
   $('#app').innerHTML = shell(`
+    <div id="install-slot"></div>
     ${unread ? `<div class="banner">🔔 有 <b>${unread}</b> 份资料是新发布或刚更新的
       <button class="btn small" id="toggle-unread">${f.onlyUnread ? '显示全部' : '只看未读'}</button></div>` : ''}
     ${noBrands ? '' : filterBar()}
@@ -383,6 +386,7 @@ function renderSales() {
           : '<div class="empty">没有符合条件的资料</div>'}
     </div>`);
   bindShell();
+  fillInstallSlot();
   bindFilters($('#app'), refreshSales);
   const t = $('#toggle-unread');
   if (t) t.onclick = () => { f.onlyUnread = !f.onlyUnread; renderSales(); };
@@ -708,11 +712,96 @@ window.addEventListener('unhandledrejection', (e) => {
   toast(e.reason?.message || '操作失败', 'error');
 });
 
+// ---------- 安装到手机桌面（PWA，苹果和安卓通用） ----------
+const ua = navigator.userAgent;
+const isIOS = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const isWeChat = /MicroMessenger/i.test(ua);
+const isMobile = isIOS || /Android|Mobile/i.test(ua);
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const INSTALL_DISMISS_KEY = 'sl_install_dismissed_at';
+let installPrompt = null;
+
+function installHint() {
+  if (!isMobile || isStandalone()) return null;
+  if (isWeChat) {
+    return { text: '微信里无法安装。请点右上角「···」→「在浏览器中打开」，再添加到手机桌面。' };
+  }
+  if (isIOS) {
+    return { text: '安装到 iPhone 桌面：用 Safari 打开本页，点底部「分享」按钮（方框加向上箭头）→「添加到主屏幕」。' };
+  }
+  if (installPrompt) return { text: '把销售资料库安装到手机桌面，像 App 一样一键打开。', button: '安装' };
+  return { text: '安装到手机桌面：点浏览器菜单（「⋮」或「≡」）→「添加到主屏幕」或「添加到桌面」。' };
+}
+
+function installDismissed() {
+  try {
+    return Date.now() - Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0) < 7 * 86400_000;
+  } catch {
+    return false;
+  }
+}
+
+function fillInstallSlot() {
+  const slot = $('#install-slot');
+  if (!slot) return;
+  const hint = installDismissed() ? null : installHint();
+  slot.innerHTML = hint
+    ? `<div class="banner install">📲 <span>${esc(hint.text)}</span>
+        ${hint.button ? `<button type="button" class="btn small primary" data-install>${esc(hint.button)}</button>` : ''}
+        <button type="button" class="btn small" data-install-close aria-label="不再提示">×</button></div>`
+    : '';
+  const btn = $('[data-install]', slot);
+  if (btn) {
+    btn.onclick = async () => {
+      installPrompt.prompt();
+      await installPrompt.userChoice.catch(() => {});
+      installPrompt = null;
+      fillInstallSlot();
+    };
+  }
+  const close = $('[data-install-close]', slot);
+  if (close) {
+    close.onclick = () => {
+      try { localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
+      slot.innerHTML = '';
+    };
+  }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  fillInstallSlot();
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  fillInstallSlot();
+  toast('已安装到手机桌面', 'success');
+});
+
+// Service Worker 需要 HTTPS（本机调试的 localhost 除外）
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+function renderOffline() {
+  closeEvents();
+  $('#app').innerHTML = `
+    <div class="login-wrap"><div class="login-card" style="text-align:center">
+      <img src="icon.svg" alt="">
+      <h1>网络不可用</h1>
+      <p class="sub">请检查手机网络后重试。资料需要联网获取，以保证始终是最新版本。</p>
+      <button class="btn primary block" type="button" onclick="location.reload()">重 试</button>
+    </div></div>`;
+}
+
 (async function boot() {
   try {
     state.user = await api('/me');
     await start();
-  } catch {
-    renderLogin();
+  } catch (err) {
+    // fetch 本身失败（TypeError）说明没有网络，而不是未登录
+    if (err instanceof TypeError) renderOffline();
+    else renderLogin();
   }
 })();
