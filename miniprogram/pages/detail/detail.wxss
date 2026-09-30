@@ -1,0 +1,10 @@
+.head { display: flex; gap: 24rpx; align-items: center; }
+.head-body { flex: 1; min-width: 0; }
+.title { font-size: 34rpx; font-weight: 700; word-break: break-all; }
+.desc { margin-top: 24rpx; font-size: 28rpx; color: #454d5e; white-space: pre-wrap; word-break: break-word; }
+.rows { margin-top: 24rpx; border-top: 1rpx solid #eef1f6; }
+.row { display: flex; justify-content: space-between; gap: 24rpx; padding: 16rpx 0; border-bottom: 1rpx solid #eef1f6; }
+.val { text-align: right; word-break: break-all; font-size: 26rpx; }
+.action { margin-top: 24rpx; }
+.note { text-align: center; margin-top: 24rpx; }
+.home { margin: 32rpx auto 0; width: 60%; }

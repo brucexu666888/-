@@ -7,6 +7,7 @@ const multer = require('multer');
 const { openDb, transaction, now, CATEGORIES, CATEGORY_CODES } = require('./db');
 const auth = require('./auth');
 const { createEventHub } = require('./events');
+const { createWechat } = require('./wechat');
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -29,11 +30,12 @@ function text(value, { field, required = false, max = 200 } = {}) {
   return s;
 }
 
-function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = {}) {
+function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123', wechat: wechatConfig = {} } = {}) {
   const db = openDb(dataDir);
   const uploadDir = path.join(dataDir, 'uploads');
   fs.mkdirSync(uploadDir, { recursive: true });
   const events = createEventHub(db);
+  const wechat = createWechat(db, wechatConfig);
 
   // 首次启动时创建默认管理员
   if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
@@ -136,7 +138,7 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
 
   api.get('/health', (_req, res) => res.json({ ok: true }));
 
-  api.post('/login', (req, res) => {
+  api.post('/login', async (req, res) => {
     const username = text(req.body?.username, { field: '用户名', required: true });
     const password = String(req.body?.password ?? '');
     const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
@@ -144,6 +146,16 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
       throw new HttpError(401, '用户名或密码错误');
     }
     if (!user.active) throw new HttpError(403, '账号已停用，请联系市场部');
+    // 小程序登录时顺带绑定微信，下次可一键登录
+    let wxBound = false;
+    if (req.body?.wxCode && wechat.enabled) {
+      try {
+        await wechat.bind(user.id, String(req.body.wxCode));
+        wxBound = true;
+      } catch (err) {
+        console.warn(`绑定微信失败：${err.message}`);
+      }
+    }
     const { token } = auth.createSession(db, user.id);
     res.cookie(auth.COOKIE_NAME, token, {
       httpOnly: true,
@@ -151,10 +163,42 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
       secure: req.secure,
       maxAge: auth.SESSION_DAYS * 86400_000,
     });
+    res.json({ token, user: publicUser(user), wxBound });
+  });
+
+  // ----- 微信小程序 -----
+  api.get('/wx/config', (_req, res) => {
+    res.json({ enabled: wechat.enabled, templateId: wechat.templateId });
+  });
+
+  api.post('/wx/login', async (req, res) => {
+    if (!wechat.enabled) throw new HttpError(404, '未启用微信登录');
+    const code = text(req.body?.code, { field: 'code', required: true });
+    const userId = await wechat.userIdForCode(code).catch((err) => {
+      throw new HttpError(502, err.message);
+    });
+    const user = userId && db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    if (!user) return res.status(404).json({ error: '该微信尚未绑定账号，请用账号密码登录', needBind: true });
+    if (!user.active) throw new HttpError(403, '账号已停用，请联系市场部');
+    const { token } = auth.createSession(db, user.id);
     res.json({ token, user: publicUser(user) });
   });
 
   api.use(auth.requireLogin);
+
+  api.get('/wx/status', (req, res) => res.json({ enabled: wechat.enabled, ...wechat.status(req.user.id) }));
+
+  // 小程序端用户同意订阅后调用，每次同意可接收一条更新提醒
+  api.post('/wx/subscribe', (req, res) => {
+    const count = Math.min(Math.max(toInt(req.body?.count) ?? 1, 1), 10);
+    if (!wechat.addQuota(req.user.id, count)) throw bad('当前账号未绑定微信');
+    res.json(wechat.status(req.user.id));
+  });
+
+  api.post('/wx/unbind', (req, res) => {
+    wechat.unbind(req.user.id);
+    res.json({ ok: true });
+  });
 
   api.post('/logout', (req, res) => {
     db.prepare('DELETE FROM sessions WHERE token = ?').run(req.token);
@@ -416,6 +460,15 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
     );
   }
 
+  // 微信订阅消息在后台发送，不阻塞接口响应
+  function pushWechat(dto, action, note) {
+    const categoryName = CATEGORIES.find((c) => c.code === dto.category)?.name;
+    const pending = wechat.notifyMaterial({ ...dto, categoryName, note }, action).catch((err) => {
+      console.warn(`订阅消息发送异常：${err.message}`);
+    });
+    app.locals.wechatPending = pending;
+  }
+
   // multer 在出错时需要清理已写入磁盘的文件
   const withUpload = (handler) => (req, res) => {
     try {
@@ -448,6 +501,7 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
       });
       const dto = loadMaterial(id, req.user);
       events.notifyBrand(dto.brandId, 'material', { action: 'created', material: dto });
+      pushWechat(dto, 'created', note);
       res.status(201).json(dto);
     })
   );
@@ -486,6 +540,7 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123' } = 
         events.notifyBrand(existing.brand_id, 'material', { action: 'deleted', id });
       }
       events.notifyBrand(dto.brandId, 'material', payload);
+      pushWechat(dto, payload.action, note);
       res.json(dto);
     })
   );

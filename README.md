@@ -12,6 +12,9 @@
 - “新” / “已更新” 标记，顶部提示未读数量，可一键“只看未读”
 - 实时推送：市场部发布或更新资料时，页面即时弹出提醒并刷新列表（页面在后台时发送系统通知）
 
+**微信小程序（销售员）**：在微信里查看资料、一键转发文件给客户、通过微信订阅消息接收资料更新提醒。
+代码与上线步骤见 [miniprogram/README.md](miniprogram/README.md)。
+
 **管理员端（市场部）**
 - 品牌管理：新建 / 编辑 / 删除品牌
 - 资料管理：上传资料（带进度条）、修改信息、替换文件（自动生成新版本并记录版本说明）、查看和下载历史版本、删除
@@ -38,6 +41,8 @@ npm start            # 打开 http://localhost:3000
 | `DATA_DIR` | `./data` | 数据库和上传文件的存放目录（请定期备份） |
 | `MAX_UPLOAD_MB` | `200` | 单个文件大小上限 |
 | `ADMIN_PASSWORD` | `admin123` | 首次启动时默认管理员的密码 |
+| `WX_APPID` / `WX_SECRET` | 空 | 微信小程序 AppID / AppSecret，配置后启用微信登录和更新提醒 |
+| `WX_TEMPLATE_ID` / `WX_TEMPLATE_FIELDS` | 空 | 订阅消息模板，详见小程序 README |
 
 ### Docker 部署
 
@@ -63,8 +68,10 @@ server/
   app.js       API 路由
   db.js        数据表结构
   auth.js      密码与会话
-  events.js    实时推送
-public/        前端页面
+  events.js    实时推送（网页端）
+  wechat.js    微信登录与订阅消息
+public/        网页前端
+miniprogram/   微信小程序
 test/          接口测试（npm test）
 ```
 
@@ -80,10 +87,12 @@ test/          接口测试（npm test）
 | GET / POST / PUT / DELETE | `/api/brands[/:id]` | 品牌 |
 | GET / POST / PUT / DELETE | `/api/users[/:id]` | 账号与品牌分配（管理员） |
 | GET | `/api/events` | 实时推送 |
+| POST | `/api/wx/login` | 小程序一键登录（`wx.login` 的 code） |
+| GET / POST | `/api/wx/status`、`/api/wx/subscribe`、`/api/wx/unbind` | 微信绑定状态、订阅提醒额度、解绑 |
 
 ## 后续可扩展
 
-- 原生 App / 微信小程序 / 企业微信、钉钉登录（接口已支持 Bearer Token）
+- 原生 App / 企业微信、钉钉登录（接口已支持 Bearer Token）
 - 文件存储改为阿里云 OSS / S3 等对象存储
 - 预览加水印（销售员姓名）、禁止下载等资料防泄漏措施
 - 离线缓存常用资料

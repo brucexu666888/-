@@ -1,0 +1,11 @@
+.profile { display: flex; align-items: center; gap: 24rpx; }
+.avatar { width: 96rpx; height: 96rpx; border-radius: 50%; background: #1f4e8c; color: #fff; font-size: 40rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.name { font-size: 34rpx; font-weight: 700; }
+.section-title { font-weight: 600; margin-bottom: 16rpx; display: flex; justify-content: space-between; }
+.tags { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.tag { background: #e8f0fb; color: #1f4e8c; padding: 6rpx 20rpx; border-radius: 999rpx; font-size: 26rpx; }
+.quota { margin: 16rpx 0; }
+.num { color: #1f4e8c; font-weight: 700; }
+.gap { margin-top: 20rpx; }
+.logout { margin-top: 40rpx; }
+.center { text-align: center; margin-top: 16rpx; }

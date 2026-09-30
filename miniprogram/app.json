@@ -1,0 +1,27 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/me/me",
+    "pages/detail/detail",
+    "pages/login/login"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#1f4e8c",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "销售资料库",
+    "backgroundColor": "#f4f6fa",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#6b7385",
+    "selectedColor": "#1f4e8c",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "资料" },
+      { "pagePath": "pages/me/me", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

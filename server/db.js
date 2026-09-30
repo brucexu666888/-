@@ -79,6 +79,14 @@ CREATE TABLE IF NOT EXISTS material_reads (
   read_at     TEXT NOT NULL,
   PRIMARY KEY (user_id, material_id)
 );
+
+-- 微信小程序绑定：openid 用于一键登录；quota 为剩余可发送的订阅消息条数
+CREATE TABLE IF NOT EXISTS wx_accounts (
+  user_id  INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  openid   TEXT NOT NULL UNIQUE,
+  quota    INTEGER NOT NULL DEFAULT 0,
+  bound_at TEXT NOT NULL
+);
 `;
 
 function openDb(dataDir) {

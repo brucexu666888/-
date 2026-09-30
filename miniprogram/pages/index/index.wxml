@@ -1,0 +1,41 @@
+<view class="header">
+  <view class="search">
+    <input class="search-input" value="{{q}}" placeholder="搜索资料标题、说明、文件名" confirm-type="search" bindinput="onSearchInput" bindconfirm="onSearchConfirm" />
+  </view>
+  <scroll-view scroll-x class="chips" enhanced show-scrollbar="{{false}}">
+    <view class="chip {{brandId === '' ? 'active' : ''}}" data-value="" bindtap="pickBrand">全部品牌</view>
+    <view wx:for="{{brands}}" wx:key="id" class="chip {{brandId === item.idStr ? 'active' : ''}}" data-value="{{item.idStr}}" bindtap="pickBrand">{{item.name}}</view>
+  </scroll-view>
+  <scroll-view scroll-x class="chips" enhanced show-scrollbar="{{false}}">
+    <view class="chip {{category === '' ? 'active' : ''}}" data-value="" bindtap="pickCategory">全部分类</view>
+    <view wx:for="{{categories}}" wx:key="code" class="chip {{category === item.code ? 'active' : ''}}" data-value="{{item.code}}" bindtap="pickCategory">{{item.name}}</view>
+  </scroll-view>
+</view>
+
+<view class="container">
+  <view wx:if="{{showSubscribeTip}}" class="banner blue" bindtap="subscribe">
+    <text>🔔 开启微信提醒，资料更新第一时间通知你</text>
+    <text class="banner-btn">开启</text>
+  </view>
+
+  <view wx:if="{{unread > 0}}" class="banner" bindtap="toggleUnread">
+    <text>有 {{unread}} 份资料是新发布或刚更新的</text>
+    <text class="banner-btn">{{onlyUnread ? '显示全部' : '只看未读'}}</text>
+  </view>
+
+  <view wx:if="{{noBrands}}" class="empty">你还没有被分配负责的品牌，请联系市场部管理员。</view>
+  <view wx:elif="{{!loading && shown.length === 0}}" class="empty">没有符合条件的资料</view>
+
+  <view wx:for="{{shown}}" wx:key="id" class="card item" data-id="{{item.id}}" bindtap="openDetail">
+    <view class="icon cat-{{item.category}}">{{item.ext}}</view>
+    <view class="body">
+      <view class="t">
+        <text>{{item.title}}</text>
+        <text wx:if="{{item.status === 'new'}}" class="badge new">新</text>
+        <text wx:if="{{item.status === 'updated'}}" class="badge updated">已更新</text>
+      </view>
+      <view class="muted meta">{{item.brandName}} · {{item.categoryName}} · V{{item.version}} · {{item.sizeText}}</view>
+      <view class="muted">更新于 {{item.timeText}}</view>
+    </view>
+  </view>
+</view>

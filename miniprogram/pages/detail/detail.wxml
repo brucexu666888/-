@@ -1,0 +1,36 @@
+<view class="container">
+  <view wx:if="{{error}}" class="empty">
+    <view>{{error}}</view>
+    <button class="btn small home" bindtap="goHome">返回资料列表</button>
+  </view>
+
+  <block wx:elif="{{m}}">
+    <view class="card">
+      <view class="head">
+        <view class="icon cat-{{m.category}}">{{m.ext}}</view>
+        <view class="head-body">
+          <view class="title">
+            <text>{{m.title}}</text>
+            <text wx:if="{{m.status === 'new'}}" class="badge new">新</text>
+            <text wx:if="{{m.status === 'updated'}}" class="badge updated">已更新</text>
+          </view>
+          <view class="muted">{{m.brandName}} · {{m.categoryName}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{m.description}}" class="desc">{{m.description}}</view>
+
+      <view class="rows">
+        <view class="row"><text class="muted">文件</text><text class="val">{{m.fileName}}</text></view>
+        <view class="row"><text class="muted">大小</text><text class="val">{{m.sizeText}}</text></view>
+        <view class="row"><text class="muted">版本</text><text class="val">V{{m.version}}（最新）</text></view>
+        <view class="row"><text class="muted">更新时间</text><text class="val">{{m.timeText}}</text></view>
+      </view>
+    </view>
+
+    <button class="btn primary action" bindtap="open">打开查看</button>
+    <button class="btn action" bindtap="share">转发给客户（微信聊天）</button>
+    <view class="muted note">资料由市场部统一维护，你看到的始终是最新版本。</view>
+    <button wx:if="{{isEntry}}" class="btn small home" bindtap="goHome">查看全部资料</button>
+  </block>
+</view>

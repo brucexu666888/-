@@ -1,0 +1,4 @@
+{
+  "desc": "内部资料，不允许被微信搜索索引",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}

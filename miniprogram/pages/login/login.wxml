@@ -1,0 +1,15 @@
+<view class="wrap">
+  <view class="logo">资</view>
+  <view class="title">销售资料库</view>
+  <view class="sub">产品资料 · 价格 · 培训 · 样本 · 手册，随时获取最新版</view>
+
+  <view class="label">账号</view>
+  <input class="input" value="{{username}}" bindinput="onUsername" placeholder="请输入账号" />
+  <view class="label">密码</view>
+  <input class="input" value="{{password}}" bindinput="onPassword" password placeholder="请输入密码" confirm-type="done" bindconfirm="submit" />
+
+  <view class="error">{{error}}</view>
+  <button class="btn primary" loading="{{loading}}" disabled="{{loading}}" bindtap="submit">登 录</button>
+  <view wx:if="{{wxEnabled}}" class="muted tip">登录后将自动绑定当前微信，下次打开无需输入密码</view>
+  <view class="muted tip">账号由市场部分配，忘记密码请联系市场部重置</view>
+</view>

@@ -1,0 +1,13 @@
+.header { position: sticky; top: 0; z-index: 10; background: #f4f6fa; padding: 20rpx 24rpx 4rpx; }
+.search-input { background: #fff; border-radius: 999rpx; height: 72rpx; padding: 0 32rpx; font-size: 28rpx; }
+.chips { white-space: nowrap; margin-top: 16rpx; }
+.chip { display: inline-block; padding: 8rpx 28rpx; margin-right: 16rpx; border-radius: 999rpx; background: #fff; border: 1rpx solid #e1e5ee; font-size: 26rpx; }
+.chip.active { background: #1f4e8c; border-color: #1f4e8c; color: #fff; }
+.container { padding-top: 12rpx; }
+.banner { display: flex; align-items: center; justify-content: space-between; background: #fff7e6; border: 1rpx solid #ffd79a; color: #8a5300; padding: 20rpx 24rpx; border-radius: 16rpx; margin-bottom: 20rpx; font-size: 26rpx; }
+.banner.blue { background: #e8f0fb; border-color: #bcd2f0; color: #1f4e8c; }
+.banner-btn { flex: none; margin-left: 16rpx; font-weight: 600; }
+.item { display: flex; gap: 24rpx; align-items: flex-start; }
+.body { flex: 1; min-width: 0; }
+.t { font-weight: 600; font-size: 30rpx; word-break: break-all; }
+.meta { margin-top: 6rpx; }

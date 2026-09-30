@@ -1,0 +1,6 @@
+.wrap { padding: 120rpx 56rpx 60rpx; }
+.logo { width: 120rpx; height: 120rpx; border-radius: 28rpx; background: #1f4e8c; color: #fff; font-size: 56rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 24rpx; }
+.title { text-align: center; font-size: 44rpx; font-weight: 700; }
+.sub { text-align: center; color: #6b7385; font-size: 24rpx; margin: 8rpx 0 48rpx; }
+.error { color: #c0392b; font-size: 24rpx; min-height: 40rpx; margin: 16rpx 0; }
+.tip { text-align: center; margin-top: 24rpx; }

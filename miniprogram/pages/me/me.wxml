@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="card profile">
+    <view class="avatar">{{initial}}</view>
+    <view>
+      <view class="name">{{user.displayName}}</view>
+      <view class="muted">{{user.username}} · {{user.role === 'admin' ? '管理员' : '销售员'}}</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">负责品牌</view>
+    <view wx:if="{{user.role === 'admin'}}" class="muted">管理员可查看全部品牌</view>
+    <view wx:elif="{{brands.length === 0}}" class="muted">暂未分配，请联系市场部</view>
+    <view wx:else class="tags">
+      <text wx:for="{{brands}}" wx:key="id" class="tag">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{wxEnabled}}" class="card">
+    <view class="section-title">微信提醒</view>
+    <view class="muted">
+      {{bound ? '已绑定当前微信。每次“允许”可接收一条资料更新提醒，勾选“总是保持以上选择”后可持续接收。' : '未绑定微信，退出后用账号密码重新登录即可绑定。'}}
+    </view>
+    <view wx:if="{{bound}}" class="quota">剩余可接收提醒：<text class="num">{{quota}}</text> 条</view>
+    <button wx:if="{{bound && templateId}}" class="btn primary small" bindtap="subscribe">开启 / 增加更新提醒</button>
+  </view>
+
+  <view class="card">
+    <view class="section-title" bindtap="togglePwd">修改密码 <text class="muted">{{showPwd ? '收起' : '展开'}}</text></view>
+    <block wx:if="{{showPwd}}">
+      <input class="input" password placeholder="原密码" value="{{oldPassword}}" data-field="oldPassword" bindinput="onInput" />
+      <input class="input gap" password placeholder="新密码（至少 6 位）" value="{{newPassword}}" data-field="newPassword" bindinput="onInput" />
+      <input class="input gap" password placeholder="确认新密码" value="{{confirm}}" data-field="confirm" bindinput="onInput" />
+      <button class="btn primary gap" bindtap="changePassword">保存新密码</button>
+    </block>
+  </view>
+
+  <button class="btn danger logout" bindtap="logout">退出登录</button>
+  <view class="muted center">退出后将解除本微信与账号的绑定</view>
+</view>
