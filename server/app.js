@@ -131,6 +131,8 @@ function createApp({ dataDir, maxUploadMb = 200, adminPassword = 'admin123', wec
   // ---------- 路由 ----------
   const app = express();
   app.disable('x-powered-by');
+  // 部署在 Nginx 反向代理之后时，根据 X-Forwarded-Proto 判断是否为 HTTPS
+  app.set('trust proxy', 'loopback');
   app.use(express.json({ limit: '1mb' }));
   app.use(auth.authenticate(db));
 

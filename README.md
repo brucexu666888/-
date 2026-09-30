@@ -75,6 +75,12 @@ npm start            # 打开 http://localhost:3000
 | `WX_APPID` / `WX_SECRET` | 空 | 微信小程序 AppID / AppSecret，配置后启用微信登录和更新提醒 |
 | `WX_TEMPLATE_ID` / `WX_TEMPLATE_FIELDS` | 空 | 订阅消息模板，详见小程序 README |
 
+### 正式部署到阿里云（推荐）
+
+按 **[docs/部署到阿里云.md](docs/部署到阿里云.md)** 操作：买一台 Ubuntu 服务器，上传压缩包后运行
+`bash deploy/install.sh`，即可自动完成安装、开机自启和 Nginx 配置；备案后运行
+`bash deploy/install.sh 你的域名` 自动开启 HTTPS。
+
 ### 正式部署（Docker）
 
 ```bash
