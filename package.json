@@ -1,0 +1,19 @@
+{
+  "name": "sales-library",
+  "version": "0.1.0",
+  "description": "销售资料库：销售员按品牌查询产品资料、价格、培训文件、样本、手册；市场部统一更新、实时下发",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.0.2"
+  }
+}
