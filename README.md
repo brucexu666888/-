@@ -81,6 +81,11 @@ npm start            # 打开 http://localhost:3000
 `bash deploy/install.sh`，即可自动完成安装、开机自启和 Nginx 配置；备案后运行
 `bash deploy/install.sh 你的域名` 自动开启 HTTPS。
 
+### 部署到极空间等 NAS
+
+按 **[docs/部署到极空间NAS.md](docs/部署到极空间NAS.md)** 操作：下载现成的镜像文件（Releases 中的 `nas-latest`），
+在极空间 Docker 中导入并创建容器即可。
+
 ### 正式部署（Docker）
 
 ```bash

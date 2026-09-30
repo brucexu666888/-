@@ -1,0 +1,74 @@
+# 构建 Docker 镜像文件（.tar），发布到 Releases，供极空间等 NAS 直接导入
+name: NAS 镜像
+
+on:
+  push:
+    branches: [main, claude/sales-materials-app-c3hjo4]
+    paths:
+      - server/**
+      - public/**
+      - scripts/**
+      - package.json
+      - package-lock.json
+      - Dockerfile
+      - .github/workflows/nas-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nas-image
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 运行测试
+        run: |
+          npm ci
+          npm test
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: 构建 x86（Intel / AMD）镜像
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          tags: sales-library:latest
+          outputs: type=docker,dest=sales-library-amd64.tar
+
+      - name: 构建 ARM 镜像
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          tags: sales-library:latest
+          outputs: type=docker,dest=sales-library-arm64.tar
+
+      - name: 发布到 Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nas-latest
+          target_commitish: ${{ github.sha }}
+          name: NAS 镜像（最新版）
+          make_latest: true
+          body: |
+            用于极空间等 NAS 的 Docker 镜像文件，导入方法见 docs/部署到极空间NAS.md。
+
+            - `sales-library-amd64.tar`：Intel / AMD 处理器的 NAS
+            - `sales-library-arm64.tar`：ARM（如瑞芯微）处理器的 NAS
+
+            构建自提交 ${{ github.sha }}
+          files: |
+            sales-library-amd64.tar
+            sales-library-arm64.tar

@@ -1,0 +1,13 @@
+# 极空间 / 群晖等 NAS 的 Compose 配置（先导入镜像文件 sales-library-*.tar）
+services:
+  sales-library:
+    image: sales-library:latest
+    container_name: sales-library
+    restart: unless-stopped
+    ports:
+      - "3000:3000"          # 左边是 NAS 上的端口，被占用时可改成 8080 等
+    volumes:
+      - ./data:/data         # 数据库和上传的资料，请放在有备份的文件夹
+    environment:
+      - ADMIN_PASSWORD=请改成你自己的初始密码
+      - MAX_UPLOAD_MB=200
